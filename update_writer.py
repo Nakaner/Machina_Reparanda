@@ -1,9 +1,8 @@
+import sys
 import requests
 from sort_functions import type_to_int
-from osm_xml_builder import *
+from osm_xml_builder import OsmXmlBuilder
 
-api_url = "https://master.apis.dev.openstreetmap.org/api/0.6"
-max_object_count = 9999
 
 class OsmApiUploader():
     def __init__(self, configuration):
@@ -15,8 +14,8 @@ class OsmApiUploader():
         self.xml_builder = OsmXmlBuilder(configuration.user)
         self.changeset = 0
         self.object_count = 0
-        #self.headers = {"User-Agent": "osmrevert-py/0.0.1", "Content-Type": "text/xml; charset=utf-8"}
         self.headers = {"User-Agent": "osmrevert-py/0.0.1", "Content-type": "text/xml"}
+        self.max_object_count = 9999
 
     def open_changeset(self):
         xml = self.xml_builder.changeset(self.comment)
@@ -24,7 +23,6 @@ class OsmApiUploader():
         url = "{}/changeset/create".format(self.api_url)
         sys.stderr.write("{} ...".format(url))
         data = xml.encode("utf-8")
-        #data = xml
         headers = self.headers.copy()
         headers["Content-Length"] = str(len(data))
         sys.stderr.write("Content-Length: {}\n".format(headers["Content-Length"]))
@@ -45,7 +43,6 @@ class OsmApiUploader():
         url = "{}/{}/{}".format(self.api_url, osm_type, osm_id)
         sys.stderr.write("{} ...".format(url))
         data = xml.encode("utf-8")
-        #data = xml
         headers = self.headers.copy()
         headers["Content-Length"] = str(len(data))
         r = requests.put(url, headers=headers, data=data, auth=(self.user, "Su9phie0ai"))
@@ -61,7 +58,6 @@ class OsmApiUploader():
         elif r.status_code != 200:
             sys.stderr.write("Other ERROR: {}\n".format(r.text))
 
-    #TODO add code which uploads
     def update_node(self, node):
         xml = self.xml_builder.node(node)
         self.put_object("node", node.id, xml)
@@ -79,7 +75,7 @@ class OsmApiUploader():
             return
         if self.changeset == 0:
             self.open_changeset()
-        if self.object_count >= max_object_count:
+        if self.object_count >= self.max_object_count:
             self.close_changeset()
             sys.stderr.write("Opening a new changeset\n")
             self.open_changeset()
@@ -108,5 +104,3 @@ class OsmApiUploader():
         else:
             sys.stderr.write("Other ERROR: {}\n".format(r.text))
         self.changeset = 0
-
-        #TODO close changeset

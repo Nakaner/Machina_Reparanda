@@ -1,6 +1,7 @@
 import sys
 
-#TODO escape strings
+
+# TODO escape strings
 class OsmXmlBuilder:
     def __init__(self, user):
         self.buffer = ""
@@ -14,7 +15,7 @@ class OsmXmlBuilder:
         self.buffer = ""
         if self.changeset_id == 0:
             sys.stderr.write("Programming ERROR\n")
-            #TODO throw exception
+            # TODO throw exception
 
     def add_header(self):
         self.buffer = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

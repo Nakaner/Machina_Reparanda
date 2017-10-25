@@ -1,13 +1,6 @@
+import sys
+
 class Configuration:
-
-    def password_promt():
-        password = input("Enter your OSM password:\n")
-        if password != "":
-            self.password = password
-        else:
-            sys.stderr.write("Failed to read password, quitting.\n")
-            exit(1)
-
     def __init__(self, config):
         try:
             self.user = config["user"]
@@ -22,3 +15,11 @@ class Configuration:
             self.password = config["password"]
         else:
             self.password_promt()
+
+    def password_promt(self):
+        password = input("Enter your OSM password:\n")
+        if password != "":
+            self.password = password
+        else:
+            sys.stderr.write("Failed to read password, quitting.\n")
+            exit(1)

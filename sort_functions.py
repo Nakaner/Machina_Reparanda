@@ -1,6 +1,7 @@
 import sys
 import osmium
 
+
 def type_to_int(osm_object):
     if isinstance(osm_object, osmium.osm.Node) or isinstance(osm_object, osmium.osm.mutable.Node):
         return 1
@@ -10,8 +11,10 @@ def type_to_int(osm_object):
         return 3
     return 4
 
+
 def equal_type_id(lhs, rhs):
     return type_to_int(lhs) == type_to_int(rhs) and lhs.id == rhs.id
+
 
 def obj_to_str(osm_object):
     type_id = type_to_int(osm_object)
@@ -23,4 +26,3 @@ def obj_to_str(osm_object):
         return "relation"
     sys.stderr.write("ERROR: unknown type {}\n".format(str(type(osm_object))))
     return "UNKNOWN"
-

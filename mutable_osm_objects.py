@@ -1,11 +1,9 @@
-import osmium
-
 class MutableLocation:
     def __init__(self, base):
         self._valid = base.valid()
         self.x = base.x
         self.y = base.y
-        #TODO add checks to lat and lon
+        # TODO add checks to lat and lon
         self.lat = base.lat_without_check()
         self.lon = base.lon_without_check()
 
@@ -18,6 +16,7 @@ class MutableLocation:
     def lon_without_check(self):
         return self.lon
 
+
 class MutableNodeRef:
     def __init__(self, base):
         self.location = MutableLocation(base.location)
@@ -26,13 +25,14 @@ class MutableNodeRef:
 
 class MutableNodeRefList():
     def __init__(self, base):
-        #TODO imitate correct interface
+        # TODO imitate correct interface
         self._nodes = []
         for n in base:
             self._nodes.append(MutableNodeRef(n))
 
     def __iter__(self):
         return self._nodes.__iter__()
+
 
 class MutableWayNodeList(MutableNodeRefList):
     def __init__(self, base):
@@ -41,7 +41,7 @@ class MutableWayNodeList(MutableNodeRefList):
 
 class MutableTagList():
     def __init__(self, base):
-        #TODO imitate correct interface
+        # TODO imitate correct interface
         self._tags = dict()
         for t in base:
             self._tags[t.k] = t.v
@@ -68,10 +68,10 @@ class MutableRelationMember():
         self.type = base.type
         self.role = base.role
 
+
 class MutableRelationMemberList():
     def __init__(self, base):
-        #TODO imitate correct interface
+        # TODO imitate correct interface
         self.members = []
         for m in base:
             self.members.apend(MutableRelationMember(m))
-

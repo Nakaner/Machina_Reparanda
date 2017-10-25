@@ -3,12 +3,10 @@
 import sys
 import argparse
 import json
-import osmium
-from sort_functions import *
-from worker import *
-from input_handler import *
-from revert_implementation import decide_and_do
-from configuration import *
+from sort_functions import type_to_int
+from worker import Worker
+from input_handler import InputHandler
+from configuration import Configuration
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", help="path to configuration file if not located at ~/.osmrevertpy", default="~/.osmrevertpy")
@@ -35,7 +33,7 @@ for filename in input_files:
 
 # sort by object type, ID and version
 sys.stderr.write("Sorting objects\n")
-sorted(objects, key = lambda obj: (type_to_int(obj), obj.id, obj.version))
+sorted(objects, key=lambda obj: (type_to_int(obj), obj.id, obj.version))
 
 # Now the main task begins.
 worker = Worker(objects, configuration)

@@ -1,6 +1,7 @@
 import copy
 import osmium
-from mutable_osm_objects import *
+from mutable_osm_objects import MutableTagList, MutableRelationMemberList, MutableWayNodeList
+
 
 class InputHandler(osmium.SimpleHandler):
     def __init__(self, object_list):
