@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.6.0 (25762 thorn-02.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="257006627" visible="true" version="4" changeset="53566018" timestamp="2017-11-06T20:52:03Z" user="hoimar" uid="2659457">
+  <nd ref="122300032"/>
+  <nd ref="122300025"/>
+  <tag k="highway" v="tertiary"/>
+  <tag k="name" v="Hannoversche Straße (K 230)"/>
+  <tag k="ref" v="K 230"/>
+ </way>
+</osm>
+

@@ -1,6 +1,7 @@
 from sort_functions import equal_type_id
 from revert_implementation import RevertImplementation
 from update_writer import OsmApiUploader
+from osm_api_functions import OsmApiClient
 
 
 class Worker():
@@ -8,7 +9,8 @@ class Worker():
         self.objects = objects
         self.configuration = configuration
         self.uploader = OsmApiUploader(self.configuration)
-        self.revert_impl = RevertImplementation(self.configuration)
+        self.api_client = OsmApiClient(self.configuration)
+        self.revert_impl = RevertImplementation(self.configuration, self.api_client)
 
     def work(self):
         current_idx = 0

@@ -3,8 +3,8 @@ import requests
 import copy
 import osmium
 from enum import Enum
-from sort_functions import obj_to_str
-from mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList
+from .sort_functions import obj_to_str
+from .mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList
 
 class ObjectCopyHandler(osmium.SimpleHandler):
     def __init__(self):
@@ -35,8 +35,8 @@ class OsmApiClient:
         self.api_url = configuration.api_url
         self.headers = {'user-agent': 'osmrevert-py/0.0.1'}
 
-    def get_version(self, osm_object, version, fallback_if_redacted=True):
-        url = "{}/{}/{}/{}".format(self.api_url, obj_to_str(osm_object), osm_object.id, version)
+    def get_version(self, osm_type, osm_id, version, fallback_if_redacted=True):
+        url = "{}/{}/{}/{}".format(self.api_url, osm_type, osm_id, version)
         sys.stderr.write("GET {} ...".format(url))
         r = requests.get(url, headers=self.headers)
         sys.stderr.write(" {}\n".format(r.status_code))
@@ -55,8 +55,8 @@ class OsmApiClient:
         handler.apply_buffer(data, ".osm")
         return OsmApiResponse.EXISTS, handler.output_object
 
-    def get_latest_version(self, osm_object):
-        url = "{}/{}/{}".format(self.api_url, obj_to_str(osm_object), osm_object.id)
+    def get_latest_version(self, osm_type, osm_id):
+        url = "{}/{}/{}".format(self.api_url, osm_type, osm_id)
         sys.stderr.write("GET {} ...".format(url))
         r = requests.get(url, headers=self.headers)
         sys.stderr.write(" {}\n".format(r.status_code))

@@ -1,17 +1,17 @@
 import sys
 import re
-from abstract_revert_implementation import AbstractRevertImplementation, obj_to_str, OsmApiResponse, OsmApiClient
+from .abstract_revert_implementation import AbstractRevertImplementation, obj_to_str, OsmApiResponse, OsmApiClient
 
 
 def get_next_greater_or_equal_element(the_list, current_value):
     for i in range(0, len(the_list)):
-        if the_list[i] >= current_value):
+        if the_list[i] >= current_value:
             return i
     return len(the_list)
 
 class RevertImplementation(AbstractRevertImplementation):
-    def __init__(self, configuration):
-        super().__init__(configuration)
+    def __init__(self, configuration, api_client):
+        super().__init__(configuration, api_client)
 
     def handle_v1_object(self, obj):
         if "name" in obj.tags and self.name_has_bad_format(obj.tags["name"]):
@@ -34,9 +34,9 @@ class RevertImplementation(AbstractRevertImplementation):
         return False
 
     def handle_obj(self, obj):
-        api_client = OsmApiClient(self.configuration)
         # get latest version
-        response, latest_version = api_client.get_latest_version(obj)
+        obj_type = obj_to_str(obj)
+        response, latest_version = self.api_client.get_latest_version(obj_type, obj.id)
         if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:
             return None
         # check if this is the latest version
@@ -44,7 +44,7 @@ class RevertImplementation(AbstractRevertImplementation):
             # name tag has been deleted in the meanwhile, no action necessary
             return None
         # get previous version
-        response, prev_version = api_client.get_version(obj, obj.version - 1)
+        response, prev_version = self.api_client.get_version(obj_type, obj.id , obj.version - 1)
         if response == OsmApiResponse.REDACTED:
             # all previous versions are redacted
             return self.handle_v1_object(obj)
@@ -82,7 +82,7 @@ class RevertImplementation(AbstractRevertImplementation):
         return False, new_object.tags[key]
 
     def is_interesting_object(self, osm_object):
-        return "highway" in osm_object
+        return "highway" in osm_object.tags
 
     def solve_conflict(self, oldest_version, latest_version, bad_versions, previous_version, initial_restore_value=""):
         """
@@ -103,10 +103,11 @@ class RevertImplementation(AbstractRevertImplementation):
         to_restore = initial_restore_value
         conflict_solution = False
         to_restore = previous_version.tags.get("name", "")
+        osm_type = obj_to_str(oldest_version)
         while v < v_max:
             # get next version
             if v < v_max - 1:
-                response, next_version =  api_client.get_version(oldest_version, v + 1, False)
+                response, next_version =  self.api_client.get_version(osm_type, oldest_version.id, v + 1, False)
             else:
                 response = OsmApiResponse.EXISTS
                 next_version = latest_version
@@ -136,8 +137,8 @@ class RevertImplementation(AbstractRevertImplementation):
 
     def handle_multiple_versions(self, objects):
         bad_versions = [x.version for x in obj]
-        api_client = OsmApiClient(self.configuration)
-        response, latest_version = api_client.get_latest_version(objects[0])
+        osm_type = obj_to_str(objects[0])
+        response, latest_version = self.api_client.get_latest_version(osm_type, objects[0].id)
         if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:
             return None
         if this_version.version == 1:
@@ -147,7 +148,7 @@ class RevertImplementation(AbstractRevertImplementation):
         for i in range(0, len(objects)):
             this_version = objects[i]
             if i == 0:
-                response, prev_version = api_client.get_version(this_version, this_version.version - 1)
+                response, prev_version = self.api_client.get_version(osm_type, this_version.id, this_version.version - 1)
                 if response == OsmApiResponse.REDACTED:
                     # all previous versions are redacted
                     sys.stdout.write("manual action necessary for {} {} {}\n".format(obj_to_str(this_version), this_version.id, this_version.version))
@@ -155,7 +156,7 @@ class RevertImplementation(AbstractRevertImplementation):
             elif objects[i-1].version < this_version.version - 1:
                 # There are version between this version and the previous version in the list. We
                 # have to solve this conflict.
-                response, prev_version = api_client.get_version(this_version, objects[i-1].version - 1)
+                response, prev_version = self.api_client.get_version(osm_type, this_version.id, objects[i-1].version - 1)
                 return self.solve_conflict(objects[i-1], latest_version, bad_versions, prev_version, to_restore)
             else:
                 response = OsmApiResponse.EXISTS
