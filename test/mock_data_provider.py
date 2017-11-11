@@ -19,20 +19,30 @@ class MockDataProvider(OsmApiClient):
     def __base_path__(self):
         return os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
-    def __init__(self, configuration, base_path=None):
+    def __get_path__(self, osm_type, osm_id, osm_version=None):
+        base = self.base_path
+        if self.fake_data:
+            base += "/fake/"
+        if osm_version is None:
+            return "{}/{}/{}.osm".format(base, osm_type, osm_id)
+        return "{}/{}/{}/{}.osm".format(base, osm_type, osm_id, osm_version)
+
+    def __init__(self, configuration, **kwargs):
         OsmApiClient.__init__(self, configuration)
         self.handler = MockDataHandler()
-        if base_path is None:
-            self.base_path = "{}/data/".format(self.__base_path__())
-        else:
-            self.base_path = base_path
+        self.fake_data = False
+        if "fake_data" in kwargs:
+            self.fake_data = kwargs["fake_data"]
+        self.base_path = "{}/data/".format(self.__base_path__())
+        if "base_path" in kwargs:
+            self.base_path = kwargs["base_path"]
 
     def get_latest_version(self, osm_type, osm_id):
-        input_file = "{}/{}/{!s}.osm".format(self.base_path, osm_type, osm_id)
+        input_file = self.__get_path__(osm_type, osm_id)
         self.handler.apply_file(input_file)
         return OsmApiResponse.EXISTS, self.handler.stored_way
 
     def get_version(self, osm_type, osm_id, version, fallback_if_redacted=True):
-        input_file = "{}/{}/{!s}/{!s}.osm".format(self.base_path, osm_type, osm_id, version)
+        input_file = self.__get_path__(osm_type, osm_id, version)
         self.handler.apply_file(input_file)
         return OsmApiResponse.EXISTS, self.handler.stored_way
