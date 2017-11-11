@@ -4,6 +4,7 @@ import unittest
 
 from .mock_data_provider import MockDataProvider
 
+
 class NameRevertTestCase(unittest.TestCase):
     def setUp(self):
         self.config = Configuration({"user": "testUser", "uid": 12458, "password": "123secret"})

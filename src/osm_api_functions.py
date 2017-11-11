@@ -6,6 +6,7 @@ from enum import Enum
 from .sort_functions import obj_to_str
 from .mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList
 
+
 class ObjectCopyHandler(osmium.SimpleHandler):
     def __init__(self):
         osmium.SimpleHandler.__init__(self)
@@ -42,9 +43,9 @@ class OsmApiClient:
         sys.stderr.write(" {}\n".format(r.status_code))
         if r.status_code == 403:  # forbidden – redacted version
             if version > 1 and fallback_if_redacted:
-                return OsmApiResponse.REDACTED_FALLBACK, self.get_version(obj_to_str(osm_object), osm_object.id, version - 1)
+                return OsmApiResponse.REDACTED_FALLBACK, self.get_version(osm_type, osm_id, version - 1, fallback_if_redacted)
             else:
-                sys.stderr.write("manual action necessary because all previous versions are redacted for {} {}\n".format(obj_to_str(osm_object), osm_object.id))
+                sys.stderr.write("manual action necessary because all previous versions are redacted for {} {}\n".format(osm_type, osm_id))
                 return OsmApiResponse.REDACTED, None
         elif r.status_code != 200:  # other error
             return OsmApiResponse.ERROR, None
@@ -71,4 +72,3 @@ class OsmApiClient:
             handler = ObjectCopyHandler()
             handler.apply_buffer(data, ".osm")
             return OsmApiResponse.EXISTS, handler.output_object
-

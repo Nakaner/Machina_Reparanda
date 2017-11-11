@@ -1,6 +1,6 @@
 import sys
 import re
-from .abstract_revert_implementation import AbstractRevertImplementation, obj_to_str, OsmApiResponse, OsmApiClient
+from .abstract_revert_implementation import AbstractRevertImplementation, obj_to_str, OsmApiResponse
 
 
 def get_next_greater_or_equal_element(the_list, current_value):
@@ -8,6 +8,7 @@ def get_next_greater_or_equal_element(the_list, current_value):
         if the_list[i] >= current_value:
             return i
     return len(the_list)
+
 
 class RevertImplementation(AbstractRevertImplementation):
     def __init__(self, configuration, api_client):
@@ -44,7 +45,7 @@ class RevertImplementation(AbstractRevertImplementation):
             # name tag has been deleted in the meanwhile, no action necessary
             return None
         # get previous version
-        response, prev_version = self.api_client.get_version(obj_type, obj.id , obj.version - 1)
+        response, prev_version = self.api_client.get_version(obj_type, obj.id, obj.version - 1)
         if response == OsmApiResponse.REDACTED:
             # all previous versions are redacted
             return self.handle_v1_object(obj)
@@ -53,7 +54,7 @@ class RevertImplementation(AbstractRevertImplementation):
         if self.is_interesting_object(prev_version) and self.is_interesting_object(obj) and self.has_tag_changed(prev_version, obj, "name"):
             if latest_version.version > obj.version:
                 # conflict
-                return self.solve_conflict(obj, latest_version, [obj.version], previous_version)
+                return self.solve_conflict(obj, latest_version, [obj.version])
             sys.stderr.write("ACTION: modify name tag of {} {} from \"{}\" to \"{}\"\n".format(obj_to_str(obj), obj.id, latest_version.tags["name"], prev_version.tags["name"]))
             new_version = obj
             new_version.tags["name"] = prev_version.tags["name"]
@@ -106,16 +107,13 @@ class RevertImplementation(AbstractRevertImplementation):
         v = oldest_version.version + 1
         v_max = latest_version.version
         this_version = oldest_version
-        if "initial_restore_value" in kwargs:
-            to_restore = initial_restore_value
-        else:
-            to_restore = oldest_version.tags.get("name", "")
+        to_restore = kwargs.get("initial_restore_value", oldest_version.tags.get("name", ""))
         conflict_solution = False
         osm_type = obj_to_str(oldest_version)
         while v <= v_max:
             # get next version
             if v < v_max:
-                response, next_version =  self.api_client.get_version(osm_type, oldest_version.id, v, False)
+                response, next_version = self.api_client.get_version(osm_type, oldest_version.id, v, False)
             else:
                 response = OsmApiResponse.EXISTS
                 next_version = latest_version
@@ -147,7 +145,7 @@ class RevertImplementation(AbstractRevertImplementation):
         return new_version
 
     def handle_multiple_versions(self, objects):
-        bad_versions = [x.version for x in obj]
+        bad_versions = [x.version for x in objects]
         osm_type = obj_to_str(objects[0])
         response, latest_version = self.api_client.get_latest_version(osm_type, objects[0].id)
         if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:

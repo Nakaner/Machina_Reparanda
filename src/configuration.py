@@ -1,5 +1,6 @@
 import sys
 
+
 class Configuration:
     def __init__(self, config):
         try:

@@ -1,19 +1,22 @@
-import sys, os, inspect
+import os
+import inspect
 import copy
 import osmium
 
 from .context import OsmApiClient, OsmApiResponse
 from .context import MutableTagList, MutableWayNodeList
 
+
 class MockDataHandler(osmium.SimpleHandler):
     def __init__(self):
         osmium.SimpleHandler.__init__(self)
-    
+
     def node(self, node):
         self.stored_node = copy.deepcopy(osmium.osm.mutable.Node(node, tags=MutableTagList(node.tags)))
-    
+
     def way(self, way):
         self.stored_way = copy.deepcopy(osmium.osm.mutable.Way(way, tags=MutableTagList(way.tags), nodes=MutableWayNodeList(way.nodes)))
+
 
 class MockDataProvider(OsmApiClient):
     def __base_path__(self):
