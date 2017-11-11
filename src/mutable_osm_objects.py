@@ -61,6 +61,9 @@ class MutableTagList():
     def items(self):
         return self._tags.items()
 
+    def get(self, key, default=None):
+        return self._tags.get(key, default)
+
 
 class MutableRelationMember():
     def __init__(self, base):
