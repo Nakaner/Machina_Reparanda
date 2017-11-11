@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.6.0 (31891 thorn-01.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="33072216" visible="true" version="6" changeset="52071384" timestamp="2017-09-15T14:51:33Z" user="theorie1" uid="5271500">
+  <nd ref="373109739"/>
+  <nd ref="373109740"/>
+  <nd ref="3566024947"/>
+  <nd ref="3566024957"/>
+  <nd ref="373114596"/>
+  <nd ref="373109741"/>
+  <nd ref="3566024952"/>
+  <nd ref="373109742"/>
+  <nd ref="373109743"/>
+  <nd ref="373109744"/>
+  <tag k="highway" v="residential"/>
+  <tag k="name" v="Rathausstraße (Monzingen)"/>
+ </way>
+</osm>
+
