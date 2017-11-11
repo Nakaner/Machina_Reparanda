@@ -84,30 +84,38 @@ class RevertImplementation(AbstractRevertImplementation):
     def is_interesting_object(self, osm_object):
         return "highway" in osm_object.tags
 
-    def solve_conflict(self, oldest_version, latest_version, bad_versions, previous_version, initial_restore_value=""):
+    def solve_conflict(self, oldest_version, latest_version, bad_versions, **kwargs):
         """
         Check if all versions of an object from from_version to the latest version
         contain only "good" changes.
 
         Args:
-        oldest_version (osmium.mutable.osm.OSMObject): oldest version of the object to be scanned
-        latest_version (osmium.mutable.osm.OSMObject): latest version of the object (usually retrieved from the API)
-        bad_versions (list of int): list of version numbers which are considered bad
-        previous_version (osmium.mutable.osm.OSMObject): version just before oldest_version
-        initial_restore_value (string): value of the `name` tag to be restored. This is the
-            result of the revert of versions before oldest_version.
+            oldest_version (osmium.mutable.osm.OSMObject): oldest version of the object to be scanned
+            latest_version (osmium.mutable.osm.OSMObject): latest version of the object (usually retrieved from the API)
+            bad_versions (list of int): list of version numbers which are considered bad
+
+        Kwargs:
+            initial_restore_value (string): value of the `name` tag to be restored. This is the
+                result of the revert of versions before oldest_version.
+
+        Returns:
+            osmium.OSMObject: a instance of one of the subclasses of osmium.OSMObject or None
+
+            ``None`` will be returned if no changes are necessary to the latest version.
         """
-        v = oldest_version.version
+        v = oldest_version.version + 1
         v_max = latest_version.version
         this_version = oldest_version
-        to_restore = initial_restore_value
+        if "initial_restore_value" in kwargs:
+            to_restore = initial_restore_value
+        else:
+            to_restore = oldest_version.tags.get("name", "")
         conflict_solution = False
-        to_restore = previous_version.tags.get("name", "")
         osm_type = obj_to_str(oldest_version)
-        while v < v_max:
+        while v <= v_max:
             # get next version
-            if v < v_max - 1:
-                response, next_version =  self.api_client.get_version(osm_type, oldest_version.id, v + 1, False)
+            if v < v_max:
+                response, next_version =  self.api_client.get_version(osm_type, oldest_version.id, v, False)
             else:
                 response = OsmApiResponse.EXISTS
                 next_version = latest_version
@@ -121,14 +129,17 @@ class RevertImplementation(AbstractRevertImplementation):
                     to_restore = new_value
                     conflict_solution = True
             elif v in bad_versions and self.is_interesting_object(this_version) and self.is_interesting_object(next_version):
-                sys.stderr.write("Ignored change of name tag between version {} and {}\n".format(v, v+1))
+                sys.stderr.write("Ignored change of name tag between version {} and {}\n".format(v-1, v))
             elif v in bad_versions and changed:
                 to_restore = new_value
-            previous_version = next_version
+            this_version = next_version
             v += 1
         if conflict_solution:
             sys.stderr.write("Solved conflict on \"name\" tag of {} {}\n".format(obj_to_str(this_version), this_version.id))
         new_version = latest_version
+        if to_restore == latest_version.tags["name"]:
+            # nothing to do
+            return None
         if to_restore == "":
             new_version.tags.pop("name", None)
         else:
@@ -141,8 +152,8 @@ class RevertImplementation(AbstractRevertImplementation):
         response, latest_version = self.api_client.get_latest_version(osm_type, objects[0].id)
         if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:
             return None
-        if this_version.version == 1:
-            sys.stdout.write("manual action necessary for {} {} {}\n".format(obj_to_str(this_version), this_version.id, this_version.version))
+        if objects[0].version == 1:
+            sys.stdout.write("manual action necessary for {} {} {}\n".format(obj_to_str(objects[0]), objects[0].id, objects[0].version))
             return None
         to_restore = ""
         for i in range(0, len(objects)):
@@ -157,7 +168,7 @@ class RevertImplementation(AbstractRevertImplementation):
                 # There are version between this version and the previous version in the list. We
                 # have to solve this conflict.
                 response, prev_version = self.api_client.get_version(osm_type, this_version.id, objects[i-1].version - 1)
-                return self.solve_conflict(objects[i-1], latest_version, bad_versions, prev_version, to_restore)
+                return self.solve_conflict(objects[i-1], latest_version, bad_versions, prev_version, initial_restore_value=to_restore)
             else:
                 response = OsmApiResponse.EXISTS
                 prev_version = objects[i-1]
