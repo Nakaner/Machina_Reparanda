@@ -8,6 +8,8 @@ class Configuration:
         except KeyError as e:
             sys.stderr.write(e)
             exit(1)
+        self.user_agent = config.get("user_agent", "machina_reparanda")
+
         self.api_url = "https://master.apis.dev.openstreetmap.org/api/0.6"
         if "api_url" in config:
             self.api_url = config["api_url"]

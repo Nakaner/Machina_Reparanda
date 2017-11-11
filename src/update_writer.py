@@ -11,10 +11,10 @@ class OsmApiUploader():
         self.password = configuration.password
         self.comment = configuration.comment
         self.api_url = configuration.api_url
-        self.xml_builder = OsmXmlBuilder(configuration.user)
+        self.xml_builder = OsmXmlBuilder(configuration)
         self.changeset = 0
         self.object_count = 0
-        self.headers = {"User-Agent": "osmrevert-py/0.0.1", "Content-type": "text/xml"}
+        self.headers = {"User-Agent": configuration.user_agent, "Content-type": "text/xml"}
         self.max_object_count = 9999
 
     def open_changeset(self):

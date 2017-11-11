@@ -9,7 +9,7 @@ from input_handler import InputHandler
 from configuration import Configuration
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--config", help="path to configuration file if not located at ~/.osmrevertpy", default="~/.osmrevertpy")
+parser.add_argument("-c", "--config", help="path to configuration file if not located at ~/.machina_reparanda", default="~/.machina_reparanda")
 parser.add_argument("bad_uid", help="ID of the user whose edits are reverted")
 parser.add_argument("comment", help="changeset comment")
 parser.add_argument("osc_files", help="OSC files", nargs="+")

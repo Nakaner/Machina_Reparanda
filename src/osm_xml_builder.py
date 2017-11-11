@@ -3,9 +3,10 @@ import sys
 
 # TODO escape strings
 class OsmXmlBuilder:
-    def __init__(self, user):
+    def __init__(self, configuration):
         self.buffer = ""
-        self.user = user
+        self.user = configuration.user
+        self.user_agent = configuration.user_agent
         self.changeset_id = 0
 
     def set_changeset(self, changeset):
@@ -52,7 +53,7 @@ class OsmXmlBuilder:
         self.buffer = ""
         self.add_header()
         self.buffer += "  <changeset>\n"
-        self.add_key_value("created_by", "osmrevert-py/0.0.1")
+        self.add_key_value("created_by", self.configuration.user_agent)
         #TODO shorten comment
         self.add_key_value("comment", comment)
         self.add_key_value("bot", "yes")
