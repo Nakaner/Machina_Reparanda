@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="OpenStreetMap server" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+  <way id="501700" changeset="108213" timestamp="2017-11-12T12:54:37Z" version="2" visible="true" user="Nakaner-dev" uid="4498">
+    <nd ref="7481625"/>
+    <nd ref="7481412"/>
+    <nd ref="7481198"/>
+    <nd ref="7480994"/>
+    <nd ref="7479861"/>
+    <nd ref="7478678"/>
+    <nd ref="7478361"/>
+    <nd ref="7478219"/>
+    <nd ref="7477931"/>
+    <nd ref="7477702"/>
+    <nd ref="7477588"/>
+    <tag k="highway" v="residential"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="30"/>
+    <tag k="name" v="Hardenbergstraße (Dessau)"/>
+    <tag k="smoothness" v="bad"/>
+    <tag k="surface" v="cobblestone"/>
+  </way>
+</osm>
+

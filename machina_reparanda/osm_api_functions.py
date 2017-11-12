@@ -3,8 +3,7 @@ import requests
 import copy
 import osmium
 from enum import Enum
-from .sort_functions import obj_to_str
-from .mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList
+from machina_reparanda.mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList
 
 
 class ObjectCopyHandler(osmium.SimpleHandler):

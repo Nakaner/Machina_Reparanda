@@ -1,9 +1,16 @@
-from .context import RevertImplementation, Configuration
 
 import unittest
 
-from .mock_data_provider import MockDataProvider
+from machina_reparanda.configuration import Configuration
+from implementations.revert_implementation import RevertImplementation
+from machina_reparanda.mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList
 
+from tests.mock_data_provider import MockDataProvider
+
+def make_fake_source(configuration):
+    fake_source = MockDataProvider(configuration, fake_data=True)
+    revert_impl = RevertImplementation(configuration, fake_source)
+    return fake_source, revert_impl
 
 class NameRevertTestCase(unittest.TestCase):
     def setUp(self):
@@ -27,8 +34,7 @@ class NameRevertTestCase(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_real_conflict(self):
-        fake_source = MockDataProvider(self.config, fake_data=True)
-        revert_impl = RevertImplementation(self.config, fake_source)
+        fake_source, revert_impl = make_fake_source(self.config)
         code, v5 = fake_source.get_version("way", 33072216, 5)
         code, v6 = fake_source.get_version("way", 33072216, 6)
         code, latest = fake_source.get_latest_version("way", 33072216)
@@ -37,3 +43,12 @@ class NameRevertTestCase(unittest.TestCase):
         self.assertEqual(v5.tags["name"], result.tags["name"])
         self.assertEqual(result.version, 7)
         self.assertIn("surface", result.tags)
+
+    def test_conflict_multiple_not_to_revert_changesets(self):
+        fake_source, revert_impl = make_fake_source(self.config)
+        code, v1 = fake_source.get_version("way", 501700, 1)
+        code, latest = fake_source.get_latest_version("way", 501700)
+        result = revert_impl.solve_conflict(v1, latest, [2])
+        self.assertIsNotNone(result)
+        self.assertEqual(v1.tags["name"], result.tags["name"])
+        self.assertEqual(result.version, 4)

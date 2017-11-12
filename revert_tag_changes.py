@@ -3,13 +3,14 @@
 import sys
 import argparse
 import json
-from sort_functions import type_to_int
-from worker import Worker
-from input_handler import InputHandler
-from configuration import Configuration
+from machina_reparanda.sort_functions import type_to_int
+from machina_reparanda.worker import Worker
+from machina_reparanda.input_handler import InputHandler
+from machina_reparanda.configuration import Configuration
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", help="path to configuration file if not located at ~/.machina_reparanda", default="~/.machina_reparanda")
+parser.add_argument("-i", "--implementation", help="path to Python file where a class RevertImplementation is provided which implements the revert", default=None)
 parser.add_argument("bad_uid", help="ID of the user whose edits are reverted")
 parser.add_argument("comment", help="changeset comment")
 parser.add_argument("osc_files", help="OSC files", nargs="+")
@@ -24,6 +25,13 @@ with open(args.config, "r") as config_file:
 
 configuration.comment = args.comment
 configuration.bad_uid = int(args.bad_uid[0])
+if not hasattr(configuration, "implementation") and args.implementation is None:
+    sys.stderr.write("ERROR: No implementation was provided to be used for this revert.\n")
+    sys.stderr.write("Please either provide a path in the configration file or use -i.\n")
+    parser.print_help()
+    exit(1)
+elif args.implementation is not None:
+    configuration.implementation = args.implementation
 
 objects = []
 input_handler = InputHandler(objects)

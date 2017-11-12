@@ -1,6 +1,6 @@
 import copy
 import osmium
-from mutable_osm_objects import MutableTagList, MutableRelationMemberList, MutableWayNodeList
+from machina_reparanda.mutable_osm_objects import MutableTagList, MutableRelationMemberList, MutableWayNodeList
 
 
 class InputHandler(osmium.SimpleHandler):

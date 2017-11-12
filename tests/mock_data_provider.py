@@ -3,8 +3,8 @@ import inspect
 import copy
 import osmium
 
-from .context import OsmApiClient, OsmApiResponse
-from .context import MutableTagList, MutableWayNodeList
+from machina_reparanda import OsmApiClient, OsmApiResponse
+from machina_reparanda import MutableTagList, MutableWayNodeList
 
 
 class MockDataHandler(osmium.SimpleHandler):

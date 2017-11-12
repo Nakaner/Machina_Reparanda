@@ -1,6 +1,8 @@
 import sys
 import re
-from .abstract_revert_implementation import AbstractRevertImplementation, obj_to_str, OsmApiResponse
+from machina_reparanda.abstract_revert_implementation import AbstractRevertImplementation
+from machina_reparanda.sort_functions import obj_to_str
+from machina_reparanda.osm_api_functions import OsmApiResponse
 
 
 def get_next_greater_or_equal_element(the_list, current_value):
@@ -54,11 +56,13 @@ class RevertImplementation(AbstractRevertImplementation):
         if self.is_interesting_object(prev_version) and self.is_interesting_object(obj) and self.has_tag_changed(prev_version, obj, "name"):
             if latest_version.version > obj.version:
                 # conflict
-                return self.solve_conflict(obj, latest_version, [obj.version])
+                sys.stderr.write("CONFLICT (will be solved automatically): {} {}, could provide version {}, got version {} from API\n".format(obj_to_str(obj), obj.id, obj.version, latest_version.version))
+                return self.solve_conflict(prev_version, latest_version, [obj.version])
             sys.stderr.write("ACTION: modify name tag of {} {} from \"{}\" to \"{}\"\n".format(obj_to_str(obj), obj.id, latest_version.tags["name"], prev_version.tags["name"]))
             new_version = obj
             new_version.tags["name"] = prev_version.tags["name"]
             return new_version
+        sys.stderr.write("{} {} {} is not interesting\n".format(obj_to_str(obj), obj.id, obj.version))
         return None
 
     def has_tag_changed(self, old_object, new_object, key):

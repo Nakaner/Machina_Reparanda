@@ -1,7 +1,7 @@
 import sys
 import requests
-from sort_functions import type_to_int
-from osm_xml_builder import OsmXmlBuilder
+from .sort_functions import type_to_int
+from .osm_xml_builder import OsmXmlBuilder
 
 
 class OsmApiUploader():
@@ -20,12 +20,11 @@ class OsmApiUploader():
     def open_changeset(self):
         xml = self.xml_builder.changeset(self.comment)
         sys.stdout.write(xml)
-        url = "{}/changeset/create".format(self.api_url)
+        url = "PUT {}/changeset/create".format(self.api_url)
         sys.stderr.write("{} ...".format(url))
         data = xml.encode("utf-8")
         headers = self.headers.copy()
         headers["Content-Length"] = str(len(data))
-        sys.stderr.write("Content-Length: {}\n".format(headers["Content-Length"]))
         r = requests.put(url, headers=headers, data=data, auth=(self.user, self.password), allow_redirects=True)
         sys.stderr.write("{}\n".format(r.status_code))
         if r.status_code == 200:
@@ -40,7 +39,7 @@ class OsmApiUploader():
 
     def put_object(self, osm_type, osm_id, xml):
         sys.stdout.write(xml)
-        url = "{}/{}/{}".format(self.api_url, osm_type, osm_id)
+        url = "PUT {}/{}/{}".format(self.api_url, osm_type, osm_id)
         sys.stderr.write("{} ...".format(url))
         data = xml.encode("utf-8")
         headers = self.headers.copy()
@@ -90,7 +89,7 @@ class OsmApiUploader():
 
     def close_changeset(self):
         sys.stdout.write("close CS\n")
-        url = "{}/changeset/{}/close".format(self.api_url, self.changeset)
+        url = "PUT {}/changeset/{}/close".format(self.api_url, self.changeset)
         sys.stderr.write("{} ...".format(url))
         r = requests.put(url, headers=self.headers, auth=(self.user, "Su9phie0ai"))
         sys.stderr.write("{}\n".format(r.status_code))

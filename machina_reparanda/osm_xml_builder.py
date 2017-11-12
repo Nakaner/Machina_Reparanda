@@ -1,6 +1,6 @@
 from xml.sax import saxutils
 
-from revert_exceptions import TagInvalidException, ProgrammingError
+from .revert_exceptions import TagInvalidException, ProgrammingError
 
 
 class OsmXmlBuilder:
@@ -78,7 +78,7 @@ class OsmXmlBuilder:
         self.buffer = ""
         self.add_header()
         self.buffer += "  <changeset>\n"
-        self.add_key_value("created_by", self.configuration.user_agent)
+        self.add_key_value("created_by", self.user_agent)
         #TODO shorten comment
         if len(comment) >= 254:
             self.add_key_value("comment", comment[0:255])
