@@ -34,7 +34,7 @@ class OsmApiResponse(Enum):
 class OsmApiClient:
     def __init__(self, configuration):
         self.api_url = configuration.api_url
-        self.headers = {'user-agent': self.configuration.user_agent}
+        self.headers = {'user-agent': configuration.user_agent}
 
     def get_version(self, osm_type, osm_id, version, fallback_if_redacted=True):
         url = "{}/{}/{}/{}".format(self.api_url, osm_type, osm_id, version)
