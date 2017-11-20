@@ -170,44 +170,16 @@ class RevertImplementation(AbstractRevertImplementation):
         if objects[0].version == 1:
             sys.stdout.write("manual action necessary for {} {} {}\n".format(obj_to_str(objects[0]), objects[0].id, objects[0].version))
             return None, None
-        to_restore = ""
-        for i in range(0, len(objects)):
-            this_version = objects[i]
-            if i == 0:
-                response, prev_version = self.api_client.get_version(osm_type, this_version.id, this_version.version - 1)
-                if response == OsmApiResponse.REDACTED:
-                    # all previous versions are redacted
-                    sys.stdout.write("manual action necessary for {} {} {}\n".format(obj_to_str(this_version), this_version.id, this_version.version))
-                    return None, None
-                to_restore = prev_version.tags.get("name", "")
-            elif objects[i-1].version < this_version.version - 1:
-                # There are version between this version and the previous version in the list. We
-                # have to solve this conflict.
-                response, prev_version = self.api_client.get_version(osm_type, this_version.id, objects[i-1].version - 1)
-                return self.solve_conflict(objects[i-1], latest_version, bad_versions, prev_version, initial_restore_value=to_restore)
-            else:
-                response = OsmApiResponse.EXISTS
-                prev_version = objects[i-1]
-            if not self.is_interesting_object(prev_version) or not self.is_interesting_object(this_version):
-                to_restore = this_version.tags.get("name", "")
-            elif self.has_tag_changed(prev_version, this_version, "name"):
-                bad_changesets.add(this_version.changeset)
-        new_version = latest_version
-        #TODO return None,None if no change necessary
-        if to_restore == latest_version.tags.get("name", ""):
-            # nothing to do
+        response, prev_version = self.api_client.get_version(osm_type, objects[0].id, objects[0].version - 1)
+        if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:
             return None, None
-        if to_restore == "":
-            new_version.tags.pop("name", None)
-        else:
-            new_version.tags["name"] = to_restore
-        return new_version, bad_changesets
+        return solve_conflict(previous_version, latest_version, bad_versions)
 
     def decide_and_do(self, objects):
         if len(objects) == 1:
             return self.work_on_single_object(objects[0])
         elif len(objects) > 1:
-            return self.handle_multiple_versions(objects[0])
+            return self.handle_multiple_versions(objects)
 
     def work_on_single_object(self, obj):
         if obj.version == 1:
