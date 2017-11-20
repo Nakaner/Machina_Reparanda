@@ -3,7 +3,7 @@ import requests
 import copy
 import osmium
 from enum import Enum
-from machina_reparanda.mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList
+from machina_reparanda.mutable_osm_objects import MutableTagList, MutableWayNodeList, MutableRelationMemberList, MutableLocation
 
 
 class ObjectCopyHandler(osmium.SimpleHandler):
@@ -11,7 +11,7 @@ class ObjectCopyHandler(osmium.SimpleHandler):
         osmium.SimpleHandler.__init__(self)
 
     def node(self, node):
-        self.output_object = copy.deepcopy(osmium.osm.mutable.Node(node, tags=MutableTagList(node.tags)))
+        self.output_object = copy.deepcopy(osmium.osm.mutable.Node(node, tags=MutableTagList(node.tags), location=MutableLocation(node.location)))
 
     def way(self, way):
         self.output_object = copy.deepcopy(osmium.osm.mutable.Way(way, tags=MutableTagList(way.tags), nodes=MutableWayNodeList(way.nodes)))

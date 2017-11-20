@@ -30,20 +30,34 @@ class Worker():
             sys.stderr.write("Error while loading revert implementation from {}: {}\n".format(abspath, err))
             exit(1)
 
+    def comment_reverted_changesets(self, changesets):
+        text = "This changeset has been reverted fully or in part by one or multiple of the following changesets: "
+        ids = ", ".join(str(cs_id) for cs_id in changesets)
+        text += ids
+        text += "\n\nThe reason for the revert is: {}".format(self.configuration.comment)
+        for cs_id in changesets:
+            self.uploader.comment_changeset(cs_id, text)
+
     def work(self):
         current_idx = 0
         next_idx = 1
+        reverted_changesets = set()
         while current_idx < len(self.objects):
             if next_idx >= len(self.objects):
-                new_object = self.revert_impl.decide_and_do(self.objects[current_idx:next_idx])
-                self.uploader.handle_object(new_object)
+                new_object, changesets = self.revert_impl.decide_and_do(self.objects[current_idx:next_idx])
+                if new_object is not None and changesets is not None:
+                    self.uploader.handle_object(new_object, changesets)
+                    reverted_changesets = reverted_changesets | changesets
                 break
             if equal_type_id(self.objects[current_idx], self.objects[next_idx]):
                 next_idx = next_idx + 1
                 continue
             else:
-                new_object = self.revert_impl.decide_and_do(self.objects[current_idx:next_idx])
+                new_object, changesets = self.revert_impl.decide_and_do(self.objects[current_idx:next_idx])
                 current_idx = next_idx
                 next_idx = next_idx + 1
-                self.uploader.handle_object(new_object)
+                if new_object is not None and changesets is not None:
+                    self.uploader.handle_object(new_object, changesets)
+                    reverted_changesets = reverted_changesets | changesets
         self.uploader.close_changeset()
+        self.comment_reverted_changesets(reverted_changesets)
