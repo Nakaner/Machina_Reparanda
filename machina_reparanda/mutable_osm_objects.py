@@ -16,11 +16,19 @@ class MutableLocation:
     def lon_without_check(self):
         return self.lon
 
+    def __str__(self):
+        return "lat: {} lon: {}".format(self.lat, self.lon)
+
 
 class MutableNodeRef:
     def __init__(self, base):
         self.location = MutableLocation(base.location)
         self.ref = base.ref
+
+    def __str__(self):
+        if self.location is not None:
+            return "nd: {} @ {}".format(self.ref, self.location)
+        return "nd: {}".format(self.ref)
 
 
 class MutableNodeRefList():
@@ -32,6 +40,12 @@ class MutableNodeRefList():
 
     def __iter__(self):
         return self._nodes.__iter__()
+
+    def __str__(self):
+        result = "  nodes:\n"
+        for n in self._nodes:
+            result += "    {}\n".format(n.__str__())
+        return result
 
 
 class MutableWayNodeList(MutableNodeRefList):
@@ -58,6 +72,12 @@ class MutableTagList():
     def __contains__(self, item):
         return item in self._tags
 
+    def __str__(self):
+        result = "  tags:\n"
+        for t in self._tags:
+            result += "    {}".format(t)
+        return t
+
     def items(self):
         return self._tags.items()
 
@@ -74,10 +94,18 @@ class MutableRelationMember():
         self.type = base.type
         self.role = base.role
 
+    def __str__(self):
+        return "    {} {} as {}\n".format(self.type, self.ref, self.role)
+
 
 class MutableRelationMemberList():
     def __init__(self, base):
         # TODO imitate correct interface
         self.members = []
         for m in base:
-            self.members.apend(MutableRelationMember(m))
+            self.members.append(MutableRelationMember(m))
+
+    def __str__(self):
+        result = "  tags:\n"
+        for m in self.members:
+            result += m.__str__()
