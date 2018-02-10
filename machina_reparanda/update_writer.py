@@ -13,7 +13,7 @@ class OsmApiUploader():
         self.dryrun = configuration.dryrun
         self.xml_builder = OsmXmlBuilder(configuration) #: instance of OsmXmlBuilder class
         self.changeset = 0 #: ID of currently open changeset
-        self.used_changeset = set() #: IDs of changesets used by this instance
+        self.used_changesets = set() #: IDs of changesets used by this instance
         self.object_count = 0 #: number of objects written to this changeset
         self.reverted_changesets = set() #: set of reverted changesets
         self.headers = {"User-Agent": configuration.user_agent, "Content-type": "text/xml"} #: HTTP headers
