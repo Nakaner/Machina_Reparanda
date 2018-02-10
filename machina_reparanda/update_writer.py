@@ -10,6 +10,7 @@ class OsmApiUploader():
         self.password = configuration.password #: password to be used for upload
         self.comment = configuration.comment #: changeset comment to be used for upload
         self.api_url = configuration.api_url #: API endpoint to be used for upload
+        self.dryrun = configuration.dryrun
         self.xml_builder = OsmXmlBuilder(configuration) #: instance of OsmXmlBuilder class
         self.changeset = 0 #: ID of currently open changeset
         self.object_count = 0 #: number of objects written to this changeset
@@ -77,6 +78,9 @@ class OsmApiUploader():
     def handle_object(self, new_object, changesets):
         if new_object is None:
             return
+        if self.dryrun:
+            sys.stderr.write("\nwould upload:\n{}".format(new_object))
+            return
         if self.changeset == 0:
             self.open_changeset()
         if self.object_count >= self.max_object_count:
@@ -102,6 +106,9 @@ class OsmApiUploader():
             cs_id (int): ID of the changeset to be commented
             comment (str): comment to be posted
         """
+        if self.dryrun:
+            sys.stderr.write("would comment changeset {} with\n\"{}\"\n".format(cs_id, comment))
+            return
         payload = {"text": comment}
         url = "{}/changeset/{}/comment".format(self.api_url, cs_id)
         sys.stderr.write("POST comment on {} ... ".format(url))
@@ -116,7 +123,7 @@ class OsmApiUploader():
         return text
 
     def close_changeset(self):
-        if self.changeset == 0:
+        if self.changeset == 0 or self.dryrun:
             return
         sys.stdout.write("close CS\n")
         url = "{}/changeset/{}/close".format(self.api_url, self.changeset)

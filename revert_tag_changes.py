@@ -10,6 +10,7 @@ from machina_reparanda.configuration import Configuration
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", help="path to configuration file if not located at ~/.machina_reparanda", default="~/.machina_reparanda")
+parser.add_argument("-d", "--dryrun", help="dryrun mode (no uploads)", action="store_true", default=False)
 parser.add_argument("-i", "--implementation", help="path to Python file where a class RevertImplementation is provided which implements the revert", default=None)
 parser.add_argument("-r", "--reuse-changeset", help="reuse changeset with the given ID", type=int, default=0)
 parser.add_argument("bad_uid", help="ID of the user whose edits are reverted")
@@ -24,6 +25,7 @@ with open(args.config, "r") as config_file:
     config_dict = json.load(config_file)
     configuration = Configuration(config_dict)
 
+configuration.dryrun = args.dryrun
 configuration.comment = args.comment
 configuration.bad_uid = int(args.bad_uid[0])
 configuration.reuse_changeset = args.reuse_changeset
