@@ -9,9 +9,11 @@ from machina_reparanda.input_handler import InputHandler
 from machina_reparanda.configuration import Configuration
 
 parser = argparse.ArgumentParser()
+parser.add_argument("-a", "--automatic-conflict-solution", help="add conflicts_automatically_resolved=yes to all uploaded changesets", action="store_true", default=False)
 parser.add_argument("-c", "--config", help="path to configuration file if not located at ~/.machina_reparanda", default="~/.machina_reparanda")
 parser.add_argument("-d", "--dryrun", help="dryrun mode (no uploads)", action="store_true", default=False)
 parser.add_argument("-i", "--implementation", help="path to Python file where a class RevertImplementation is provided which implements the revert", default=None)
+parser.add_argument("-S", "--no-comment-reverted", help="don't post a changeset comment to all reverted changesets (e.g. to avoid email spamming)", action="store_true", default=False)
 parser.add_argument("-r", "--reuse-changeset", help="reuse changeset with the given ID", type=int, default=0)
 parser.add_argument("bad_uid", help="ID of the user whose edits are reverted")
 parser.add_argument("comment", help="changeset comment")
@@ -25,7 +27,9 @@ with open(args.config, "r") as config_file:
     config_dict = json.load(config_file)
     configuration = Configuration(config_dict)
 
+configuration.automatic_conflict_solution = args.automatic_conflict_solution
 configuration.dryrun = args.dryrun
+configuration.comment_reverted = not args.no_comment_reverted
 configuration.comment = args.comment
 configuration.bad_uid = int(args.bad_uid[0])
 configuration.reuse_changeset = args.reuse_changeset
@@ -45,7 +49,7 @@ for filename in input_files:
 
 # sort by object type, ID and version
 sys.stderr.write("Sorting objects\n")
-sorted(objects, key=lambda obj: (type_to_int(obj), obj.id, obj.version))
+objects.sort(key=lambda obj: (type_to_int(obj), obj.id, obj.version))
 
 # Now the main task begins.
 worker = Worker(objects, configuration)

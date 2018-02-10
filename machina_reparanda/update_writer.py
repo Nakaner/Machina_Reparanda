@@ -1,6 +1,6 @@
 import sys
 import requests
-from .sort_functions import type_to_int
+from .sort_functions import type_to_int, obj_to_str
 from .osm_xml_builder import OsmXmlBuilder
 
 
@@ -13,6 +13,7 @@ class OsmApiUploader():
         self.dryrun = configuration.dryrun
         self.xml_builder = OsmXmlBuilder(configuration) #: instance of OsmXmlBuilder class
         self.changeset = 0 #: ID of currently open changeset
+        self.used_changeset = set() #: IDs of changesets used by this instance
         self.object_count = 0 #: number of objects written to this changeset
         self.reverted_changesets = set() #: set of reverted changesets
         self.headers = {"User-Agent": configuration.user_agent, "Content-type": "text/xml"} #: HTTP headers
@@ -79,7 +80,8 @@ class OsmApiUploader():
         if new_object is None:
             return
         if self.dryrun:
-            sys.stderr.write("\nwould upload:\n{}".format(new_object))
+            obj = new_object
+            sys.stderr.write("\nwould upload:\n{} {} version {}:\n{}\n".format(obj_to_str(new_object), obj.id, obj.version, obj.tags))
             return
         if self.changeset == 0:
             self.open_changeset()
@@ -142,5 +144,6 @@ class OsmApiUploader():
         # comment the changeset
         self.comment_changeset(self.changeset, self.make_changeset_comment_text())
         # reset
+        self.used_changesets.add(self.changeset)
         self.changeset = 0
         self.reverted_changesets = set()

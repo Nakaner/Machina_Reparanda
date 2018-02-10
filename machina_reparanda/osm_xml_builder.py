@@ -9,6 +9,7 @@ class OsmXmlBuilder:
         self.user = configuration.user
         self.user_agent = configuration.user_agent
         self.changeset_id = 0
+        self.configuration = configuration
 
     def set_changeset(self, changeset):
         self.changeset_id = changeset
@@ -86,6 +87,8 @@ class OsmXmlBuilder:
             self.add_key_value("comment", comment)
         self.add_key_value("bot", "yes")
         self.add_key_value("reverting", "yes")
+        if self.configuration.automatic_conflict_solution:
+            self.add_key_value("automatic_conflict_solution", "yes")
         self.buffer += "  </changeset>\n"
         self.finalize()
         return self.buffer

@@ -32,7 +32,7 @@ class Worker():
 
     def comment_reverted_changesets(self, changesets):
         text = "This changeset has been reverted fully or in part by one or multiple of the following changesets: "
-        ids = ", ".join(str(cs_id) for cs_id in changesets)
+        ids = ", ".join(str(cs_id) for cs_id in self.uploader.used_changesets)
         text += ids
         text += "\n\nThe reason for the revert is: {}".format(self.configuration.comment)
         for cs_id in changesets:
@@ -60,4 +60,5 @@ class Worker():
                     self.uploader.handle_object(new_object, changesets)
                     reverted_changesets = reverted_changesets | changesets
         self.uploader.close_changeset()
-        self.comment_reverted_changesets(reverted_changesets)
+        if self.config.comment_reverted:
+            self.comment_reverted_changesets(reverted_changesets)
