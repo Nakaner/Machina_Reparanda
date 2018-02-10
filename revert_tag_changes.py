@@ -15,7 +15,6 @@ parser.add_argument("-d", "--dryrun", help="dryrun mode (no uploads)", action="s
 parser.add_argument("-i", "--implementation", help="path to Python file where a class RevertImplementation is provided which implements the revert", default=None)
 parser.add_argument("-S", "--no-comment-reverted", help="don't post a changeset comment to all reverted changesets (e.g. to avoid email spamming)", action="store_true", default=False)
 parser.add_argument("-r", "--reuse-changeset", help="reuse changeset with the given ID", type=int, default=0)
-parser.add_argument("bad_uid", help="ID of the user whose edits are reverted")
 parser.add_argument("comment", help="changeset comment")
 parser.add_argument("osc_files", help="OSC files", nargs="+")
 args = parser.parse_args()
@@ -31,7 +30,6 @@ configuration.automatic_conflict_solution = args.automatic_conflict_solution
 configuration.dryrun = args.dryrun
 configuration.comment_reverted = not args.no_comment_reverted
 configuration.comment = args.comment
-configuration.bad_uid = int(args.bad_uid[0])
 configuration.reuse_changeset = args.reuse_changeset
 if not hasattr(configuration, "implementation") and args.implementation is None:
     sys.stderr.write("ERROR: No implementation was provided to be used for this revert.\n")
