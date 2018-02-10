@@ -65,8 +65,17 @@ class OsmXmlBuilder:
         for nd_ref in way_node_list:
             self.add_node_ref(nd_ref)
 
+    def member_type_to_long_string(self, mtype):
+        if mtype == "n":
+            return "node"
+        elif mtype == "w":
+            return "way"
+        elif mtype == "r":
+            return "relation"
+        raise RuntimeError("Unknown OSM object type")
+
     def add_relation_member(self, member):
-        mtype = saxutils.quoteattr(member.type)
+        mtype = saxutils.quoteattr(self.member_type_to_long_string(member.type))
         mref = saxutils.quoteattr(str(member.ref))
         mrole = saxutils.quoteattr(member.role)
         self.buffer += "    <member type={} ref={} role={}/>\n".format(mtype, mref, mrole)
