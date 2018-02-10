@@ -74,9 +74,9 @@ class MutableTagList():
 
     def __str__(self):
         result = "  tags:\n"
-        for t in self._tags:
-            result += "    {}".format(t)
-        return t
+        for tk, tv in self._tags.items():
+            result += "    {} = {}\n".format(tk, tv)
+        return result
 
     def items(self):
         return self._tags.items()
@@ -104,6 +104,9 @@ class MutableRelationMemberList():
         self.members = []
         for m in base:
             self.members.append(MutableRelationMember(m))
+
+    def __iter__(self):
+        return self.members.__iter__()
 
     def __str__(self):
         result = "  tags:\n"
