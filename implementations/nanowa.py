@@ -1,11 +1,20 @@
 """
-This implementation was used to revert the deletions of the following tags which were spread over
-over hundret changesets by one single user and mixed with good edits: wikipedia=*, wikidata=*,
-source=*, wikipedia:*=*, source:*=*, wikidata:*=*.
+© 2018 Michael Reichert
 
-The implementation also contains an automatic conflict solution because it only reverts changes
-on tags, not on coordinates and members. There are also unit tests for this implementation in the
-test directory.
+This file is part of Machina Reparanda.
+
+osmi_simple_views is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+osmi_simple_views is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with osmi_simple_views. If not, see <http://www.gnu.org/licenses/>.
 """
 
 
@@ -23,6 +32,16 @@ def get_next_greater_or_equal_element(the_list, current_value):
 
 
 class RevertImplementation(AbstractRevertImplementation):
+    """
+    This implementation was used to revert the deletions of the following tags which were spread over
+    over hundret changesets by one single user and mixed with good edits: wikipedia=*, wikidata=*,
+    source=*, wikipedia:*=*, source:*=*, wikidata:*=*.
+
+    The implementation also contains an automatic conflict solution because it only reverts changes
+    on tags, not on coordinates and members. There are also unit tests for this implementation in the
+    test directory.
+    """
+
     def __init__(self, configuration, api_client):
         super().__init__(configuration, api_client)
 
@@ -199,14 +218,3 @@ class RevertImplementation(AbstractRevertImplementation):
         if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:
             return None, None
         return self.solve_conflict(prev_version, latest_version, bad_versions)
-
-    def decide_and_do(self, objects):
-        if len(objects) == 1:
-            return self.work_on_single_object(objects[0])
-        elif len(objects) > 1:
-            return self.handle_multiple_versions(objects)
-
-    def work_on_single_object(self, obj):
-        if obj.version == 1:
-            return self.handle_v1_object(obj)
-        return self.handle_obj(obj)

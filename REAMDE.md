@@ -50,15 +50,20 @@ should follow. Please test your code. Write unit tests!
 2. Create a new Python file in `implemenations/`, e.g. `implementations/clever_revert.py`. It
    contains a class called `RevertImplementation` which is derived from
    `AbstractRevertImplementation`.
-3. `RevertImplementation` should implement a method `decide_and_do(osm_object)` which takes a list
-   of `osmium.osm.MutableOSMObject` and returns an instace of `osmium.osm.MutableOSMObject` and a
-   set of integers. The list contains all versions of the object which should be reverted. The
-   returned `MutableOSMObject` is the object to be uploaded to the OSM API. The set of integers
-   are the IDs of the changesets whose edits have been reverted fully or partially. If no action
-   is necessary, return `None, None`. `decide_and_do` usually splits up handling of objects on two
-   branches. One branch handles lists which only contain one object, the other branch handle the
-   cases if the user edited the object multiple times and multiple versions should be reverted.
-   Both methods usually call a method which implements the conflict solution strategy.
+3. `RevertImplementation` should implement following callback methods:
+
+  * `handle_obj` takes an instance of `osmium.osm.MutableOSMObject` as argument: This method handles
+    objects which have only been edited once by all the changesets to be reverted. The object has
+    to be edited or deleted by these changesets but not created.
+  * `handle_v1_obj` takes an instance of `osmium.osm.MutableOSMObject` as argument: This method
+    handles objects which have been created and not modified by the changesets to be reverted.
+  * `handle_multiple_versions` takes a list of `osmium.osm.MutableOSMObject` as argument: This
+    method handles objects which have been edited multiple times by the changesets to be reverted.
+    This means, the user(s) uploaded more than one version.
+
+   All these versions should return an instance of `osmium.osm.MutableOSMObject` and a set of
+   changeset IDs (integers) whose changes have been reverted fully or partially. If no action is
+   necessary, they should return `None, None`.
 4. Write unit tests for your implementation and run them. The `test/` directory contains examples.
    Run `make test` to run all unit tests or `python3 -m unittest tests/TESTNAME.py` for a single
    test.

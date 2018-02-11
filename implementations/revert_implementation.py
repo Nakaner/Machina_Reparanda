@@ -174,14 +174,3 @@ class RevertImplementation(AbstractRevertImplementation):
         if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:
             return None, None
         return solve_conflict(previous_version, latest_version, bad_versions)
-
-    def decide_and_do(self, objects):
-        if len(objects) == 1:
-            return self.work_on_single_object(objects[0])
-        elif len(objects) > 1:
-            return self.handle_multiple_versions(objects)
-
-    def work_on_single_object(self, obj):
-        if obj.version == 1:
-            return self.handle_v1_object(obj)
-        return self.handle_obj(obj)
