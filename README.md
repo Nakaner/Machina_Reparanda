@@ -40,8 +40,9 @@ should follow. Please test your code. Write unit tests!
 * [Pyosmium](http://osmcode.org/pyosmium/) (Python bindings for the Osmium 2.x C++ library)
 * [Requests](http://docs.python-requests.org/en/master/)
 
-* Debian: `python3-pyosmium python3-requests`
-* Arch Linux: `python-requests` and from AUR `pyosmium-git`
+Debian: `python3-pyosmium python3-requests`
+
+Arch Linux: `python-requests` and from AUR `pyosmium-git`
 
 ## How to use
 
@@ -52,12 +53,12 @@ should follow. Please test your code. Write unit tests!
    `AbstractRevertImplementation`.
 3. `RevertImplementation` should implement following callback methods:
 
-  * `handle_obj` takes an instance of `osmium.osm.MutableOSMObject` as argument: This method handles
+   * `handle_obj` takes an instance of `osmium.osm.MutableOSMObject` as argument: This method handles
     objects which have only been edited once by all the changesets to be reverted. The object has
     to be edited or deleted by these changesets but not created.
-  * `handle_v1_obj` takes an instance of `osmium.osm.MutableOSMObject` as argument: This method
+   * `handle_v1_obj` takes an instance of `osmium.osm.MutableOSMObject` as argument: This method
     handles objects which have been created and not modified by the changesets to be reverted.
-  * `handle_multiple_versions` takes a list of `osmium.osm.MutableOSMObject` as argument: This
+   * `handle_multiple_versions` takes a list of `osmium.osm.MutableOSMObject` as argument: This
     method handles objects which have been edited multiple times by the changesets to be reverted.
     This means, the user(s) uploaded more than one version.
 
@@ -74,7 +75,7 @@ should follow. Please test your code. Write unit tests!
    [download_changesets.sh](https://github.com/woodpeck/osm-revert-scripts/blob/master/download_changesets.sh)
    by Frederik Ramm. It will save them as files named `c<changeset_id>.osc`.
 7. Run `python3 revert_tag_changes.py -c CONFIG_FILE -i IMPLEMENTATION_FILE --dryrun "changeset
-   comment" path/to/c*.osc
+   comment" path/to/c*.osc`
 
 
 ## License
