@@ -79,5 +79,5 @@ class Worker():
                     self.uploader.handle_object(new_object, changesets)
                     reverted_changesets = reverted_changesets | changesets
         self.uploader.close_changeset()
-        if self.config.comment_reverted:
+        if self.configuration.comment_reverted:
             self.comment_reverted_changesets(reverted_changesets)
