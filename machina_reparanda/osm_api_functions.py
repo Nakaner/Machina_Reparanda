@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with osmi_simple_views. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
+import logging
 import requests
 import copy
 import osmium
@@ -56,14 +56,13 @@ class OsmApiClient:
 
     def get_version(self, osm_type, osm_id, version, fallback_if_redacted=True):
         url = "{}/{}/{}/{}".format(self.api_url, osm_type, osm_id, version)
-        sys.stderr.write("GET {} ...".format(url))
         r = requests.get(url, headers=self.headers)
-        sys.stderr.write(" {}\n".format(r.status_code))
+        logging.debug("GET {} {}".format(url, r.status_code))
         if r.status_code == 403:  # forbidden – redacted version
             if version > 1 and fallback_if_redacted:
                 return OsmApiResponse.REDACTED_FALLBACK, self.get_version(osm_type, osm_id, version - 1, fallback_if_redacted)
             else:
-                sys.stderr.write("manual action necessary because all previous versions are redacted for {} {}\n".format(osm_type, osm_id))
+                logging.warning("Manual action necessary because all previous versions are redacted for {} {}".format(osm_type, osm_id))
                 return OsmApiResponse.REDACTED, None
         elif r.status_code != 200:  # other error
             return OsmApiResponse.ERROR, None
@@ -76,9 +75,8 @@ class OsmApiClient:
 
     def get_latest_version(self, osm_type, osm_id):
         url = "{}/{}/{}".format(self.api_url, osm_type, osm_id)
-        sys.stderr.write("GET {} ...".format(url))
         r = requests.get(url, headers=self.headers)
-        sys.stderr.write(" {}\n".format(r.status_code))
+        logging.debug("GET {} {}".format(url, r.status_code))
         if r.status_code == 404:
             return OsmApiResponse.NOT_FOUND, None
         elif r.status_code == 410:

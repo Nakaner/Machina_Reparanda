@@ -17,15 +17,19 @@ You should have received a copy of the GNU General Public License
 along with osmi_simple_views. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
+import logging
 
 class Configuration:
+    """
+    Configuration of the library/revert program
+    """
+
     def __init__(self, config):
         try:
             self.user = config["user"]
             self.uid = config["uid"]
         except KeyError as e:
-            sys.stderr.write(e)
+            logging.critical(e)
             exit(1)
         self.user_agent = config.get("user_agent", "machina_reparanda")
 
@@ -40,5 +44,5 @@ class Configuration:
         if password != "":
             return password
         else:
-            sys.stderr.write("Failed to read password, quitting.\n")
+            logging.critical("Failed to read password, quitting.")
             exit(1)

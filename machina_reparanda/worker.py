@@ -19,6 +19,7 @@ along with osmi_simple_views. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
+import logging
 import importlib.util
 
 from .sort_functions import equal_type_id
@@ -36,7 +37,7 @@ class Worker():
         path, name = os.path.split(abspath)
         module_name, ext = os.path.splitext(name)
         #module_name, ext = "{}.{}".format("implementations", os.path.splitext(name))
-        sys.stderr.write("module_name: {}\n".format(module_name))
+        logging.info("Using module {} for this revert.".format(module_name))
         try:
             #module = importlib.machinery.SourceFileLoader(module_name, self.configuration.implementation).exec_module()
             spec = importlib.util.spec_from_file_location(module_name, abspath)
@@ -45,7 +46,7 @@ class Worker():
             sys.modules[module_name] = module
             self.revert_impl = module.RevertImplementation(self.configuration, self.api_client)
         except ImportError as err:
-            sys.stderr.write("Error while loading revert implementation from {}: {}\n".format(abspath, err))
+            logging.critical("Error while loading revert implementation from {}: {}".format(abspath, err))
             exit(1)
 
     def comment_reverted_changesets(self, changesets):

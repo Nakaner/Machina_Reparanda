@@ -3,6 +3,7 @@
 import sys
 import argparse
 import json
+import logging
 from machina_reparanda.sort_functions import type_to_int
 from machina_reparanda.worker import Worker
 from machina_reparanda.input_handler import InputHandler
@@ -13,11 +14,22 @@ parser.add_argument("-a", "--automatic-conflict-solution", help="add conflicts_a
 parser.add_argument("-c", "--config", help="path to configuration file if not located at ~/.machina_reparanda", default="~/.machina_reparanda")
 parser.add_argument("-d", "--dryrun", help="dryrun mode (no uploads)", action="store_true", default=False)
 parser.add_argument("-i", "--implementation", help="path to Python file where a class RevertImplementation is provided which implements the revert", default=None)
+parser.add_argument("-l", "--log-level", help="log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)", default="INFO", type=str)
 parser.add_argument("-S", "--no-comment-reverted", help="don't post a changeset comment to all reverted changesets (e.g. to avoid email spamming)", action="store_true", default=False)
 parser.add_argument("-r", "--reuse-changeset", help="reuse changeset with the given ID", type=int, default=0)
 parser.add_argument("comment", help="changeset comment")
 parser.add_argument("osc_files", help="OSC files", nargs="+")
 args = parser.parse_args()
+
+# log level
+numeric_log_level = getattr(logging, args.log_level.upper())
+if not isinstance(numeric_log_level, int):
+    raise ValueError("Invalid log level {}".format(args.log_level.upper()))
+logging.basicConfig(level=numeric_log_level)
+
+# reduce log level for requests and urllib3
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 input_files = args.osc_files
 
@@ -41,12 +53,13 @@ elif args.implementation is not None:
 
 objects = []
 input_handler = InputHandler(objects)
+logging.info("Reading input files ...")
 for filename in input_files:
-    sys.stderr.write("Reading {}\n".format(filename))
+    logging.debug("Reading {}".format(filename))
     input_handler.apply_file(filename)
 
 # sort by object type, ID and version
-sys.stderr.write("Sorting objects\n")
+logging.info("Sorting objects ...")
 objects.sort(key=lambda obj: (type_to_int(obj), obj.id, obj.version))
 
 # Now the main task begins.

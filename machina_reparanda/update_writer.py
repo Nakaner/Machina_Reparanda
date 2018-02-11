@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with osmi_simple_views. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
+import logging
 import requests
 from .sort_functions import type_to_int, obj_to_str
 from .osm_xml_builder import OsmXmlBuilder
@@ -45,43 +45,41 @@ class OsmApiUploader():
 
     def open_changeset(self):
         xml = self.xml_builder.changeset(self.comment)
-        sys.stdout.write(xml)
+        logging.debug(xml)
         url = "{}/changeset/create".format(self.api_url)
-        sys.stderr.write("PUT {} ...".format(url))
         data = xml.encode("utf-8")
         headers = self.headers.copy()
         headers["Content-Length"] = str(len(data))
         r = requests.put(url, headers=headers, data=data, auth=(self.user, self.password), allow_redirects=True)
-        sys.stderr.write("{}\n".format(r.status_code))
+        logging.debug("PUT {} {}".format(url, r.status_code))
         if r.status_code == 200:
             self.changeset = int(r.text)
-            sys.stderr.write("Changeset ID is {}\n".format(self.changeset))
+            logging.info("Changeset ID is {}".format(self.changeset))
             self.xml_builder.set_changeset(self.changeset)
         elif r.status_code == 400:
-            sys.stderr.write("Programming ERROR: {}\n".format(r.text))
+            logging.critical("Programming ERROR: {}".format(r.text))
             exit(1)
         else:
-            sys.stderr.write("Other ERROR: {}\n".format(r.text))
+            logging.error("Other ERROR: {}".format(r.text))
 
     def put_object(self, osm_type, osm_id, xml):
-        sys.stdout.write(xml)
+        logging.debug(xml)
         url = "{}/{}/{}".format(self.api_url, osm_type, osm_id)
-        sys.stderr.write("PUT {} ...".format(url))
         data = xml.encode("utf-8")
         headers = self.headers.copy()
         headers["Content-Length"] = str(len(data))
         r = requests.put(url, headers=headers, data=data, auth=(self.user, self.password))
-        sys.stderr.write("{}\n".format(r.status_code))
+        logging.debug("PUT {} {}".format(url, r.status_code))
         if r.status_code == 400:
-            sys.stderr.write("Programming ERROR (Bad Request): {}\n".format(r.text))
+            logging.error("Programming ERROR (Bad Request): {}".format(r.text))
         elif r.status_code == 404:
-            sys.stderr.write("Programming ERROR (Not Found): {}\n".format(r.text))
+            logging.error("Programming ERROR (Not Found): {}".format(r.text))
         elif r.status_code == 412:
-            sys.stderr.write("PRECONDITION FAILED: {}\n".format(r.text))
+            logging.error("PRECONDITION FAILED: {}".format(r.text))
         elif r.status_code == 409:
-            sys.stderr.write("CONFLICT: {}\n".format(r.text))
+            logging.error("CONFLICT: {}".format(r.text))
         elif r.status_code != 200:
-            sys.stderr.write("Other ERROR: {}\n".format(r.text))
+            logging.error("Other ERROR: {}".format(r.text))
 
     def update_node(self, node):
         xml = self.xml_builder.node(node)
@@ -100,13 +98,13 @@ class OsmApiUploader():
             return
         if self.dryrun:
             obj = new_object
-            sys.stderr.write("\nwould upload:\n{} {} version {}:\n{}\n".format(obj_to_str(new_object), obj.id, obj.version, obj.tags))
+            logging.debug("would upload:{} {} version {} with following tags:\n{}".format(obj_to_str(new_object), obj.id, obj.version, obj.tags))
             return
         if self.changeset == 0:
             self.open_changeset()
         if self.object_count >= self.max_object_count:
             self.close_changeset()
-            sys.stderr.write("Opening a new changeset\n")
+            logging.info("Opening a new changeset")
             self.open_changeset()
         for cs in changesets:
             self.reverted_changesets.add(cs)
@@ -117,7 +115,7 @@ class OsmApiUploader():
         elif type_to_int(new_object) == 3:
             self.update_relation(new_object)
         else:
-            sys.stderr.write("ERROR: unkown type {}\n".format(type(new_object)))
+            logging.critical("ERROR: unkown type {}".format(type(new_object)))
 
     def comment_changeset(self, cs_id, comment):
         """
@@ -128,14 +126,13 @@ class OsmApiUploader():
             comment (str): comment to be posted
         """
         if self.dryrun:
-            sys.stderr.write("would comment changeset {} with\n\"{}\"\n".format(cs_id, comment))
+            logging.info("would comment changeset {} with \"{}\"".format(cs_id, comment))
             return
         payload = {"text": comment}
         url = "{}/changeset/{}/comment".format(self.api_url, cs_id)
-        sys.stderr.write("POST comment on {} ... ".format(url))
         r = requests.post(url, data=payload, headers=self.headers_comments, auth=(self.user, self.password))
-        sys.stderr.write("{}\n".format(r.status_code))
-        sys.stderr.write(r.text)
+        logging.debug("POST comment on {} {}".format(url, r.status_code))
+        logging.debug(r.text)
 
     def make_changeset_comment_text(self):
         text = "This changeset reverts some or all edits made in the following changeset: "
@@ -146,20 +143,18 @@ class OsmApiUploader():
     def close_changeset(self):
         if self.changeset == 0 or self.dryrun:
             return
-        sys.stdout.write("close CS\n")
         url = "{}/changeset/{}/close".format(self.api_url, self.changeset)
-        sys.stderr.write("PUT {} ...".format(url))
+        logging.debug("PUT {} {}".format(url, r.status_code))
         r = requests.put(url, headers=self.headers, auth=(self.user, self.password))
-        sys.stderr.write("{}\n".format(r.status_code))
         if r.status_code == 200:
-            sys.stderr.write("Changeset {} was successfully closed.\n".format(self.changeset))
+            logging.info("Changeset {} was successfully closed.".format(self.changeset))
             self.xml_builder.set_changeset(self.changeset)
         elif r.status_code == 404 or r.status_code == 405:
-            sys.stderr.write("Programming ERROR: {}\n".format(r.text))
+            logging.error("Programming ERROR: {}".format(r.text))
         elif r.status_code == 409:
-            sys.stderr.write("CONFLICT: {}\n".format(r.text))
+            logging.error("CONFLICT: {}".format(r.text))
         else:
-            sys.stderr.write("Other ERROR: {}\n".format(r.text))
+            logging.error("Other ERROR: {}".format(r.text))
         # comment the changeset
         self.comment_changeset(self.changeset, self.make_changeset_comment_text())
         # reset

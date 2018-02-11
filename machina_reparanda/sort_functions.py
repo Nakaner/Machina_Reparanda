@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with osmi_simple_views. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
 import osmium
 
+from .revert_exceptions import OSMException
 
 def type_to_int(osm_object):
     if isinstance(osm_object, osmium.osm.Node) or isinstance(osm_object, osmium.osm.mutable.Node):
@@ -43,5 +43,4 @@ def obj_to_str(osm_object):
         return "way"
     if type_id == 3:
         return "relation"
-    sys.stderr.write("ERROR: unknown type {}\n".format(str(type(osm_object))))
-    return "UNKNOWN"
+    raise OSMException("unknown type {}\n".format(str(type(osm_object))))
