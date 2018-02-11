@@ -53,7 +53,7 @@ class RevertImplementation(AbstractRevertImplementation):
             return self.handle_v1_object(obj)
         if response in [OsmApiResponse.DELETED, OsmApiResponse.NOT_FOUND, OsmApiResponse.ERROR]:
             return None, None
-        name_changed, new_value =  self.has_tag_changed(prev_version, obj, "name")
+        name_changed, new_value = self.has_tag_changed(prev_version, obj, "name")
         if self.is_interesting_object(prev_version) and self.is_interesting_object(obj) and name_changed:
             if latest_version.version > obj.version:
                 # conflict
