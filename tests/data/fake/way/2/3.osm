@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.6.0 (31891 thorn-01.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <way id="2" visible="true" version="3" changeset="5" timestamp="2017-11-01T22:22:50Z" user="NaNowa" uid="5">
+  <nd ref="373109739"/>
+  <nd ref="373109740"/>
+  <nd ref="3566024947"/>
+  <nd ref="3566024957"/>
+  <nd ref="373109739"/>
+  <tag k="building" v="church"/>
+  <tag k="amenity" v="place_of_worship"/>
+  <tag k="religion" v="christian"/>
+  <tag k="denomination" v="protestant"/>
+  <tag k="name" v="Stadtkirche"/>
+ </way>
+</osm>
+
