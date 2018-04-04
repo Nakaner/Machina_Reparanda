@@ -77,6 +77,14 @@ Arch Linux: `python-requests` and from AUR `pyosmium-git`
 7. Run `python3 revert_tag_changes.py -c CONFIG_FILE -i IMPLEMENTATION_FILE --dryrun "changeset
    comment" path/to/c*.osc`
 
+## Other tools in this repository
+
+This repository contains some other tools which are useful utilities to prepare or run reverts.
+
+**changeset-filter.py** filters the output of the `/changesets` API and outputs the IDs of matching
+changesets. The matching uses regular expressions and any changeset tag can be compared to the expression.
+The list of changeset IDs (one per line) is written to STDOUT and can be used to download these
+changesets from the API using curl or wget.
 
 ## License
 
