@@ -32,21 +32,30 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 class CSHandler(osmium.SimpleHandler):
-    def __init__(self):
+    def __init__(self, pattern=None, keys_of_interest=None):
         osmium.SimpleHandler.__init__(self)
+        self.pattern = pattern
+        self.keys_of_interest = keys_of_interest
         self.last_timestamp = datetime.datetime.utcnow()
         self.count = 0
 
     def reset(self):
         self.count = 0
 
+    def _output(self, changeset):
+        sys.stdout.write("{}\n".format(changeset.id))
+
     def changeset(self, cs):
         self.last_timestamp = cs.created_at
-        for key in keys_to_search:
+        if self.pattern is None:
+            # no filter
+            self._output(cs)
+            return
+        for key in self.keys_of_interest:
             comment = cs.tags.get(key, "")
-            result = re.search(pattern, comment)
+            result = re.search(self.pattern, comment)
             if (not args.invert and result is not None) or (args.invert and result is None):
-                sys.stdout.write("{}\n".format(cs.id))
+                self._output(cs)
                 break
 
 
@@ -84,7 +93,7 @@ class CSDownloader():
 
 parser = argparse.ArgumentParser(description="Search in changeset metadata files")
 parser.add_argument("-v", "--invert", help="invert match", action="store_true", default=False)
-parser.add_argument("-r", "--regex", help="filter comment by regex", required=True)
+parser.add_argument("-r", "--regex", help="filter comment by regex")
 parser.add_argument("-k", "--keys", help="comma separated list of changeset tag keys to compare with the regular expression", default="comment")
 parser.add_argument("-i", "--ignore-case", help="don't filter case sensitive", action="store_true", default=False)
 parser.add_argument("-d", "--download", help="download the list of changesets from the OSM API", action="store_true", default=False)
@@ -95,19 +104,22 @@ parser.add_argument("--download-to", help="newest timestamp for changesets to be
 parser.add_argument("-f", "--input-file", help="XML file containing changeset metadata", type=str, default=None)
 args = parser.parse_args()
 
-flags = re.IGNORECASE if args.ignore_case else 0
-pattern = re.compile(args.regex, flags)
+if args.regex:
+    flags = re.IGNORECASE if args.ignore_case else 0
+    pattern = re.compile(args.regex, flags)
+    keys_to_search = args.keys.split(",")
+    handler = CSHandler(pattern, keys_to_search)
+else:
+    handler = CSHandler()
 
-keys_to_search = args.keys.split(",")
 
-h = CSHandler()
 if args.download:
-    downloader = CSDownloader(args.download_user, args.download_uid, args.download_since, args.download_to, h)
+    downloader = CSDownloader(args.download_user, args.download_uid, args.download_since, args.download_to, handler)
     while True:
         if not downloader.next():
             break
 elif args.input_file:
-    h.apply_file(args.input_file)
+    handler.apply_file(args.input_file)
 else:
     sys.stderr.write("ERROR: no input given\n")
     exit(1)
