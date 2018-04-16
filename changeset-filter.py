@@ -33,8 +33,9 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 class CSHandler(osmium.SimpleHandler):
-    def __init__(self, osc_output_dir=None, pattern=None, keys_of_interest=None):
+    def __init__(self, filter_bbox, osc_output_dir=None, pattern=None, keys_of_interest=None):
         osmium.SimpleHandler.__init__(self)
+        self.bbox = filter_bbox
         self.pattern = pattern
         self.keys_of_interest = keys_of_interest
         self.osc_output_dir = osc_output_dir
@@ -72,6 +73,9 @@ class CSHandler(osmium.SimpleHandler):
 
     def changeset(self, cs):
         self.last_timestamp = cs.created_at
+        # check bounding box first
+        if not self.bbox.intersects_osm_box(cs.bounds):
+            return
         if self.pattern is None:
             # no filter
             self._output(cs)
@@ -85,7 +89,7 @@ class CSHandler(osmium.SimpleHandler):
 
 
 class CSDownloader():
-    def __init__(self, user, uid, since, to, handler):
+    def __init__(self, user, uid, since, to, handler, bbox):
         if user is not None and uid is not None:
             raise Exception("You must not specify both the user name and the UID")
         if user is None and uid is None:
@@ -95,6 +99,7 @@ class CSDownloader():
         self.since = datetime.datetime.strptime(since, DATE_FORMAT)
         self.handler = handler
         self.date_to = datetime.datetime.strptime(to, DATE_FORMAT)
+        self.bbox = bbox
 
     def _query_string(self):
         params = []
@@ -102,6 +107,8 @@ class CSDownloader():
             params.append("display_name={}".format(urllib.parse.quote(self.user)))
         if self.uid:
             params.append("uid={}".format(self.uid))
+        if not self.bbox.is_default():
+            params.append("bbox={}".format(self.bbox))
         params.append("time={},{}".format(self.since.strftime(DATE_FORMAT), self.date_to.strftime(DATE_FORMAT)))
         return "&".join(params)
 
@@ -118,6 +125,36 @@ class CSDownloader():
         return self.handler.count > 0
 
 
+class CSBox():
+    @staticmethod
+    def from_coord_string(coord_string):
+        c = coord_string.split(",")
+        if len(c) < 4:
+            raise IndexError("Too few elements in coordinate string")
+        return CSBox(c[0], c[1], c[2], c[3])
+
+    def __init__(self, min_lon, min_lat, max_lon, max_lat):
+        self.min_lon = float(min_lon)
+        self.min_lat = float(min_lat)
+        self.max_lon = float(max_lon)
+        self.max_lat = float(max_lat)
+
+    def intersects_osm_box(self, osm_box):
+        other_box = CSBox(osm_box.bottom_left.lon, osm_box.bottom_left.lat, osm_box.top_right.lon, osm_box.top_right.lat)
+        return self.intersects(other_box)
+
+    def intersects(self, other):
+        x_overlap = max(self.min_lon, other.min_lon) <= min(self.max_lon, other.max_lon)
+        y_overlap = max(self.min_lat, other.min_lat) <= min(self.max_lat, other.max_lat)
+        return x_overlap and y_overlap
+
+    def is_default(self):
+        return self.min_lon == -180.0 and self.min_lat == -90.0 and self.max_lon == 180.0 and self.max_lat == 90.0
+
+    def __repr__(self):
+        return "{},{},{},{}".format(self.min_lon, self.min_lat, self.max_lon, self.max_lat)
+
+
 parser = argparse.ArgumentParser(description="Search in changeset metadata files")
 parser.add_argument("-v", "--invert", help="invert match", action="store_true", default=False)
 parser.add_argument("-r", "--regex", help="filter comment by regex")
@@ -128,21 +165,24 @@ parser.add_argument("-u", "--download-user", help="name of the user whose change
 parser.add_argument("--download-uid", help="UID of the user whose changesets should be downloaded", type=int)
 parser.add_argument("-s", "--download-since", help="oldest timestamp for changesets to be downloaded, format: YYYY-mm-ddTHH:MM:SS")
 parser.add_argument("--download-to", help="newest timestamp for changesets to be downloaded, format: YYYY-mm-ddTHH:MM:SS", default=datetime.datetime.utcnow().strftime(DATE_FORMAT))
+parser.add_argument("-b", "--bbox", help="only download changeset (meta)data if the bounding box intersects with the bbox given", type=str, metavar="min_lon,min_lat,max_lon,max_lat", default="-180,-90,180,90")
 parser.add_argument("-o", "--osc-output-dir", help="output directory for downloaded content of the changesets (OSC format)", type=str, default=None)
 parser.add_argument("-f", "--input-file", help="XML file containing changeset metadata", type=str, default=None)
 args = parser.parse_args()
+
+filter_bbox = CSBox.from_coord_string(args.bbox)
 
 if args.regex:
     flags = re.IGNORECASE if args.ignore_case else 0
     pattern = re.compile(args.regex, flags)
     keys_to_search = args.keys.split(",")
-    handler = CSHandler(args.osc_output_dir, pattern, keys_to_search)
+    handler = CSHandler(filter_bbox, args.osc_output_dir, pattern, keys_to_search)
 else:
-    handler = CSHandler(args.osc_output_dir)
+    handler = CSHandler(filter_bbox, args.osc_output_dir)
 
 
 if args.download_list:
-    downloader = CSDownloader(args.download_user, args.download_uid, args.download_since, args.download_to, handler)
+    downloader = CSDownloader(args.download_user, args.download_uid, args.download_since, args.download_to, handler, filter_bbox)
     while True:
         if not downloader.next():
             break
