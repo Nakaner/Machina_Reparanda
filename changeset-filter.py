@@ -166,7 +166,7 @@ parser.add_argument("-i", "--ignore-case", help="don't filter case sensitive", a
 parser.add_argument("-d", "--download-list", help="download the list of changesets from the OSM API", action="store_true", default=False)
 parser.add_argument("-u", "--download-user", help="name of the user whose changesets should be downloaded")
 parser.add_argument("--download-uid", help="UID of the user whose changesets should be downloaded", type=int)
-parser.add_argument("-s", "--download-since", help="oldest timestamp for changesets to be downloaded, format: YYYY-mm-ddTHH:MM:SS")
+parser.add_argument("-s", "--download-since", help="oldest timestamp for changesets to be downloaded, format: YYYY-mm-ddTHH:MM:SS", type=str, default="2004-08-01T00:00:00")
 parser.add_argument("--download-to", help="newest timestamp for changesets to be downloaded, format: YYYY-mm-ddTHH:MM:SS", default=datetime.datetime.utcnow().strftime(DATE_FORMAT))
 parser.add_argument("-b", "--bbox", help="only download changeset (meta)data if the bounding box intersects with the bbox given", type=str, metavar="min_lon,min_lat,max_lon,max_lat", default="-180,-90,180,90")
 parser.add_argument("-o", "--osc-output-dir", help="output directory for downloaded content of the changesets (OSC format)", type=str, default=None)
