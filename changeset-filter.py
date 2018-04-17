@@ -30,6 +30,7 @@ import urllib.parse
 
 API_URL = "https://api.openstreetmap.org/api/0.6/"
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
+USER_AGENT = "machina_reparanda"
 
 
 class CSHandler(osmium.SimpleHandler):
@@ -57,7 +58,8 @@ class CSHandler(osmium.SimpleHandler):
         try:
             url = "{}changeset/{}/download".format(API_URL, cs_id)
             sys.stderr.write("fetching OSC file from {} ...".format(url))
-            r = requests.get("{}changeset/{}/download".format(API_URL, cs_id), timeout=300, stream=True)
+            header = {"user-agent": USER_AGENT}
+            r = requests.get("{}changeset/{}/download".format(API_URL, cs_id), timeout=300, stream=True, headers=header)
             if r.status_code != 200:
                 sys.stderr.write("Failed to fetch the contents of changeset {}: {}\n".format(cs_id, r.raise_for_status()))
                 exit(1)
@@ -117,7 +119,8 @@ class CSDownloader():
         sys.stderr.write("downloading changeset list, changesets before {}\n".format(self.since.strftime(DATE_FORMAT)))
         url = "{}changesets?{}".format(API_URL, self._query_string())
         sys.stderr.write("{} ...".format(url))
-        r = requests.get(url)
+        header = {"user-agent": USER_AGENT}
+        r = requests.get(url, headers=header)
         sys.stderr.write(" {}\n".format(r.status_code))
         if r.status_code == 200:
             self.handler.apply_buffer(r.content, "osm")
