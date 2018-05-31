@@ -74,6 +74,7 @@ class CSHandler(osmium.SimpleHandler):
             exit(1)
 
     def changeset(self, cs):
+        self.count += 1
         self.last_timestamp = cs.created_at
         # check bounding box first
         if not self.bbox.intersects_osm_box(cs.bounds):
