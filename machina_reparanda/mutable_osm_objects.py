@@ -60,6 +60,12 @@ class MutableNodeRefList():
     def __iter__(self):
         return self._nodes.__iter__()
 
+    def __setitem__(self, index, value):
+        self._nodes[index] = value
+
+    def append(self, value):
+        self._nodes.append(value)
+
     def __str__(self):
         result = "  nodes:\n"
         for n in self._nodes:
