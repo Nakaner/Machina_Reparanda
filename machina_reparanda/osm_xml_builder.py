@@ -135,31 +135,37 @@ class OsmXmlBuilder:
             return "\"true\""
         return "\"false\""
 
-    def node(self, node):
-        self.reset()
-        self.add_header()
+    def node(self, node, one_object_upload=True):
+        if one_object_upload:
+            self.reset()
+            self.add_header()
         self.buffer += "  <node id=\"{}\" changeset=\"{}\" version=\"{}\" visible={} user=\"{}\">\n".format(node.id, self.changeset_id, node.version, self._visible_to_str(node.visible), self.user)
         self.add_tags(node.tags)
         self.buffer += "  </node>\n"
-        self.finalize()
+        if one_object_upload:
+            self.finalize()
         return self.buffer
 
-    def way(self, way):
-        self.reset()
-        self.add_header()
+    def way(self, way, one_object_upload=True):
+        if one_object_upload:
+            self.reset()
+            self.add_header()
         self.buffer += "  <way id=\"{}\" changeset=\"{}\" version=\"{}\" visible={} user=\"{}\">\n".format(way.id, self.changeset_id, way.version, self._visible_to_str(way.visible), self.user)
         self.add_way_node_list(way.nodes)
         self.add_tags(way.tags)
         self.buffer += "  </way>\n"
-        self.finalize()
+        if one_object_upload:
+            self.finalize()
         return self.buffer
 
     def relation(self, relation):
-        self.reset()
-        self.add_header()
+        if one_object_upload:
+            self.reset()
+            self.add_header()
         self.buffer += "  <relation id=\"{}\" changeset=\"{}\" version=\"{}\" visible={} user=\"{}\">\n".format(relation.id, self.changeset_id, relation.version, self._visible_to_str(relation.visible), self.user)
         self.add_relation_member_list(relation.members)
         self.add_tags(relation.tags)
         self.buffer += "  </relation>\n"
-        self.finalize()
+        if one_object_upload:
+            self.finalize()
         return self.buffer
