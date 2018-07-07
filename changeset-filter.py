@@ -69,7 +69,7 @@ class CSHandler(osmium.SimpleHandler):
             with open(dest_file_path, "wb") as oscfile:
                 oscfile.write(r.content)
             sys.stderr.write(" {}\n".format(r.status_code))
-        except Exeption as err:
+        except Exception as err:
             sys.stderr.write("Failed to write OSC file: {}\n".format(err))
             exit(1)
 
@@ -144,6 +144,8 @@ class CSBox():
         self.max_lat = float(max_lat)
 
     def intersects_osm_box(self, osm_box):
+        if not osm_box.valid():
+            return args.ignore_invalid_bbox
         other_box = CSBox(osm_box.bottom_left.lon, osm_box.bottom_left.lat, osm_box.top_right.lon, osm_box.top_right.lat)
         return self.intersects(other_box)
 
@@ -170,6 +172,7 @@ parser.add_argument("--download-uid", help="UID of the user whose changesets sho
 parser.add_argument("-s", "--download-since", help="oldest timestamp for changesets to be downloaded, format: YYYY-mm-ddTHH:MM:SS", type=str, default="2004-08-01T00:00:00")
 parser.add_argument("--download-to", help="newest timestamp for changesets to be downloaded, format: YYYY-mm-ddTHH:MM:SS", default=datetime.datetime.utcnow().strftime(DATE_FORMAT))
 parser.add_argument("-b", "--bbox", help="only download changeset (meta)data if the bounding box intersects with the bbox given", type=str, metavar="min_lon,min_lat,max_lon,max_lat", default="-180,-90,180,90")
+parser.add_argument("--ignore-invalid-bbox", help="skip changesets with invalid/missing bounding boxes and check all other filters to apply", action="store_true")
 parser.add_argument("-o", "--osc-output-dir", help="output directory for downloaded content of the changesets (OSC format)", type=str, default=None)
 parser.add_argument("-f", "--input-file", help="XML file containing changeset metadata", type=str, default=None)
 args = parser.parse_args()
