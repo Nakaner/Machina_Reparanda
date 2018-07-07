@@ -139,7 +139,7 @@ class OsmXmlBuilder:
         if one_object_upload:
             self.reset()
             self.add_header()
-        self.buffer += "  <node id=\"{}\" changeset=\"{}\" version=\"{}\" visible={} user=\"{}\">\n".format(node.id, self.changeset_id, node.version, self._visible_to_str(node.visible), self.user)
+        self.buffer += "  <node id=\"{}\" changeset=\"{}\" version=\"{}\" visible={} user=\"{}\" lat=\"{}\" lon=\"{}\">\n".format(node.id, self.changeset_id, node.version, self._visible_to_str(node.visible), self.user, node.location.lat, node.location.lon)
         self.add_tags(node.tags)
         self.buffer += "  </node>\n"
         if one_object_upload:
