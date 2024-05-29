@@ -109,7 +109,7 @@ class CSDownloader():
         if self.user:
             params.append("display_name={}".format(urllib.parse.quote(self.user)))
         if self.uid:
-            params.append("uid={}".format(self.uid))
+            params.append("user={}".format(self.uid))
         if not self.bbox.is_default():
             params.append("bbox={}".format(self.bbox))
         params.append("time={},{}".format(self.since.strftime(DATE_FORMAT), self.date_to.strftime(DATE_FORMAT)))
