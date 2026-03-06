@@ -28,9 +28,10 @@ import osmium
 import requests
 import urllib.parse
 
-API_URL = "https://api.openstreetmap.org/api/0.6/"
-DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
-USER_AGENT = "machina_reparanda"
+from machina_reparanda.utils import api_url as API_URL
+from machina_reparanda.utils import date_format as DATE_FORMAT
+from machina_reparanda.utils import user_agent as USER_AGENT
+from machina_reparanda.utils import download_changeset
 
 
 class CSHandler(osmium.SimpleHandler):
@@ -56,19 +57,15 @@ class CSHandler(osmium.SimpleHandler):
         file_name = "c{}.osc".format(cs_id)
         dest_file_path = os.path.join(self.osc_output_dir, file_name)
         try:
-            url = "{}changeset/{}/download".format(API_URL, cs_id)
-            sys.stderr.write("fetching OSC file from {} ...".format(url))
-            header = {"user-agent": USER_AGENT}
-            r = requests.get("{}changeset/{}/download".format(API_URL, cs_id), timeout=300, stream=True, headers=header)
-            if r.status_code != 200:
-                sys.stderr.write("Failed to fetch the contents of changeset {}: {}\n".format(cs_id, r.raise_for_status()))
-                exit(1)
+            changeset_data = download_changeset(cs_id)
+        except requests.exceptions.HTTPError as err:
+            sys.stderr.write("Failed to fetch the contents of changeset {}: {}\n".format(cs_id, err))
+            exit(1)
         except requests.exceptions.Timeout as err:
             sys.stderr.write("Failed to fetch the contents of changeset {}: {}\n".format(cs_id, err))
         try:
             with open(dest_file_path, "wb") as oscfile:
-                oscfile.write(r.content)
-            sys.stderr.write(" {}\n".format(r.status_code))
+                oscfile.write(changeset_data)
         except Exception as err:
             sys.stderr.write("Failed to write OSC file: {}\n".format(err))
             exit(1)
